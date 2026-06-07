@@ -5,6 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kuis Aksara</title>
     <link rel="stylesheet" href="belajar.css">
+    <style>
+        /* Tambahan style biar gambar di kuis rapi */
+        .question-symbol {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 120px;
+            font-size: 4rem; /* Buat kalau nampilin teks latin */
+            font-weight: bold;
+            color: #2e7d32;
+        }
+        .question-symbol img {
+            max-height: 100px;
+            width: auto;
+            display: block;
+        }
+        .choice-btn img {
+            max-height: 40px;
+            width: auto;
+            pointer-events: none; /* Biar tetep kebaca klik tombolnya, bukan gambarnya */
+            vertical-align: middle;
+        }
+    </style>
 </head>
 <body>
     <main class="page-shell">
@@ -24,12 +47,15 @@
                 <button class="mode-btn" data-mode="cepat">Tantangan Cepat</button>
             </div>
             <div class="score-row">
-                <span id="progress">Soal 1/19</span>
+                <span id="progress">Soal 1/20</span>
                 <span id="score">Skor 0</span>
             </div>
-            <div class="question-symbol" id="questionSymbol">Ka</div>
+            
+            <div class="question-symbol" id="questionSymbol"></div>
+            
             <p class="feedback" id="questionText">Aksara hinji dibaca api?</p>
             <div class="choices" id="choices"></div>
+            
             <div class="badge-row">
                 <div class="badge"><strong id="bestScore">0</strong>Skor Paling Balak</div>
                 <div class="badge"><strong id="comboText">0</strong>Runtun Bener</div>
@@ -44,25 +70,28 @@
     </main>
 
     <script>
+        // --- DATA DIUBAH PAKE LINK GAMBAR ---
         const bank = [
-            { symbol: 'Ka', answer: 'Ka' },
-            { symbol: 'Ga', answer: 'Ga' },
-            { symbol: 'Nga', answer: 'Nga' },
-            { symbol: 'Pa', answer: 'Pa' },
-            { symbol: 'Ba', answer: 'Ba' },
-            { symbol: 'Ma', answer: 'Ma' },
-            { symbol: 'Ta', answer: 'Ta' },
-            { symbol: 'Da', answer: 'Da' },
-            { symbol: 'Na', answer: 'Na' },
-            { symbol: 'Ca', answer: 'Ca' },
-            { symbol: 'Ja', answer: 'Ja' },
-            { symbol: 'Nya', answer: 'Nya' },
-            { symbol: 'Ya', answer: 'Ya' },
-            { symbol: 'La', answer: 'La' },
-            { symbol: 'Ra', answer: 'Ra' },
-            { symbol: 'Sa', answer: 'Sa' },
-            { symbol: 'Wa', answer: 'Wa' },
-            { symbol: 'Ha', answer: 'Ha' }
+            { img: 'aksara-ka.jpeg', answer: 'Ka' },
+            { img: 'aksara-ga.jpeg', answer: 'Ga' },
+            { img: 'aksara-nga.jpeg', answer: 'Nga' },
+            { img: 'aksara-pa.jpeg', answer: 'Pa' },
+            { img: 'aksara-ba.jpeg', answer: 'Ba' },
+            { img: 'aksara-ma.jpeg', answer: 'Ma' },
+            { img: 'aksara-ta.jpeg', answer: 'Ta' },
+            { img: 'aksara-da.jpeg', answer: 'Da' },
+            { img: 'aksara-na.jpeg', answer: 'Na' },
+            { img: 'aksara-ca.jpeg', answer: 'Ca' },
+            { img: 'aksara-ja.jpeg', answer: 'Ja' },
+            { img: 'aksara-nya.jpeg', answer: 'Nya' },
+            { img: 'aksara-ya.jpeg', answer: 'Ya' },
+            { img: 'aksara-a.jpeg', answer: 'A' },
+            { img: 'aksara-la.jpeg', answer: 'La' },
+            { img: 'aksara-ra.jpeg', answer: 'Ra' },
+            { img: 'aksara-sa.jpeg', answer: 'Sa' },
+            { img: 'aksara-wa.jpeg', answer: 'Wa' },
+            { img: 'aksara-ha.jpeg', answer: 'Ha' },
+            { img: 'aksara-gha.jpeg', answer: 'Gha' }
         ];
 
         let current = 0;
@@ -119,13 +148,18 @@
             document.getElementById('comboText').textContent = combo;
 
             if (mode === 'aksara') {
+                // Mode tebak aksara: Soal nampilin teks latin, pilihan nampilin gambar aksara
                 document.getElementById('questionSymbol').textContent = item.answer;
                 document.getElementById('questionText').textContent = 'Pilih aksara sai cocok jama bunyi hinji.';
-                document.getElementById('choices').innerHTML = optionsFor(item.answer).map(option =>
-                    `<button class="choice-btn" data-answer="${option}">${bank.find(row => row.answer === option).symbol}</button>`
-                ).join('');
+                document.getElementById('choices').innerHTML = optionsFor(item.answer).map(option => {
+                    const row = bank.find(r => r.answer === option);
+                    return `<button class="choice-btn" data-answer="${option}">
+                                <img src="${row.img}" alt="${option}">
+                            </button>`;
+                }).join('');
             } else {
-                document.getElementById('questionSymbol').textContent = item.symbol;
+                // Mode tebak bunyi & cepat: Soal nampilin gambar aksara, pilihan nampilin teks latin
+                document.getElementById('questionSymbol').innerHTML = `<img src="${item.img}" alt="${item.answer}">`;
                 document.getElementById('questionText').textContent = mode === 'cepat' ? 'Cepat pilih bunyi sai pas!' : 'Aksara hinji dibaca api?';
                 document.getElementById('choices').innerHTML = optionsFor(item.answer).map(option =>
                     `<button class="choice-btn" data-answer="${option}">${option}</button>`
@@ -141,6 +175,7 @@
             clearInterval(clock);
             const item = bank[current];
             const correct = button.dataset.answer === item.answer;
+            
             if (correct) {
                 combo += 1;
                 score += mode === 'cepat' ? 15 + timeLeft : 10 + combo;
@@ -150,10 +185,12 @@
                 combo = 0;
                 button.classList.add('wrong');
                 document.getElementById('questionText').textContent = `Belum pas. Jawaban sai bener: ${item.answer}`;
+                
                 document.querySelectorAll('.choice-btn').forEach(btn => {
                     if (btn.dataset.answer === item.answer) btn.classList.add('correct');
                 });
             }
+            
             if (score > best) {
                 best = score;
                 localStorage.setItem('skorAksaraLampung', best);
@@ -166,7 +203,7 @@
         document.getElementById('nextQuestion').addEventListener('click', () => {
             if (current === bank.length - 1) {
                 const star = score >= 180 ? 'Tiga bintang' : score >= 100 ? 'Dua bintang' : 'Siji bintang';
-                document.getElementById('questionSymbol').textContent = '\u2605';
+                document.getElementById('questionSymbol').innerHTML = '<span>&#9733;</span>';
                 document.getElementById('questionText').textContent = `${star}. Kuis tammat, terus latihan lagi.`;
                 document.getElementById('choices').innerHTML = '';
                 document.getElementById('timerText').textContent = '-';
@@ -194,6 +231,8 @@
                 document.querySelectorAll('.mode-btn').forEach(item => item.classList.remove('active'));
                 button.classList.add('active');
                 mode = button.dataset.mode;
+                // Acak urutan soal tiap ganti mode biar ga bosen
+                bank.sort(() => Math.random() - 0.5); 
                 current = 0;
                 score = 0;
                 combo = 0;
@@ -201,6 +240,8 @@
             });
         });
 
+        // Acak urutan pertama kali main
+        bank.sort(() => Math.random() - 0.5);
         render();
     </script>
 </body>
