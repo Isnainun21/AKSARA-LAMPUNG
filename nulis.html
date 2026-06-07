@@ -3,8 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nulis Aksara</title>
+    <title>Nulis Aksara Lampung</title>
     <link rel="stylesheet" href="belajar.css">
+    <style>
+        /* Tambahan style biar gambar aksara pas di kotaknya */
+        .aksara-big {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 150px; /* Atur ketinggian minimum agar konsisten */
+        }
+        .aksara-big img {
+            max-height: 120px;
+            max-width: 90%;
+            width: auto;
+            height: auto;
+            display: block;
+        }
+        .trace-symbol {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 0; /* Pastikan di belakang tulisan kanvas */
+        }
+        .trace-symbol img {
+            max-height: 250px;
+            max-width: 90%;
+            width: auto;
+            height: auto;
+            opacity: 0.15; /* Lebih transparan biar gampang ditimpa */
+        }
+        /* Memperbaiki alignment chip-symbol */
+        .chip-symbol {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-width: 30px;
+        }
+        .chip-symbol img {
+            max-height: 20px;
+            width: auto;
+            height: auto;
+        }
+    </style>
 </head>
 <body>
     <main class="page-shell">
@@ -19,7 +62,7 @@
 
         <section class="panel grid-two">
             <div class="hero-card">
-                <div class="aksara-big" id="currentLetter">Ka</div>
+                <div class="aksara-big" id="currentLetter"></div>
                 <p class="latin-name" id="currentName">Aksara Ka</p>
                 <div class="info-list">
                     <div class="info-item" id="hintOne">Titik awal: pucuk kiri.</div>
@@ -37,7 +80,7 @@
             </div>
 
             <div class="trace-guide">
-                <div class="trace-symbol" id="traceSymbol">Ka</div>
+                <div class="trace-symbol" id="traceSymbol"></div>
                 <canvas class="writing-board" id="board" width="520" height="360"></canvas>
                 <div class="tool-row" id="colorTools">
                     <button class="swatch active" data-color="#ff5722" style="background:#ff5722"></button>
@@ -62,27 +105,32 @@
     </main>
 
     <script>
+        // --- DATA LENGKAP SEMUA HURUF ---
+        // Property 'img' adalah jalur file gambarnya
         const letters = [
-            { symbol: 'Ka', name: 'Aksara Ka', hint: 'Titik awal: pucuk kiri.', move: 'Gerak tangan: turun, lengkung, lalu tutup rapi.' },
-            { symbol: 'Ga', name: 'Aksara Ga', hint: 'Titik awal: bagian atas.', move: 'Gerak tangan: garis besar dulu, tambah ekor kecil.' },
-            { symbol: 'Nga', name: 'Aksara Nga', hint: 'Titik awal: tengah atas.', move: 'Gerak tangan: buat badan lebar, sambung pelan.' },
-            { symbol: 'Pa', name: 'Aksara Pa', hint: 'Titik awal: kiri bawah.', move: 'Gerak tangan: naik lalu putar sedikit.' },
-            { symbol: 'Ba', name: 'Aksara Ba', hint: 'Titik awal: kiri atas.', move: 'Gerak tangan: bentuk badan, tambah garis penanda.' },
-            { symbol: 'Ma', name: 'Aksara Ma', hint: 'Titik awal: atas.', move: 'Gerak tangan: tarik turun, lengkungkan ujung.' },
-            { symbol: 'Ta', name: 'Aksara Ta', hint: 'Titik awal: kiri.', move: 'Gerak tangan: garis pendek lalu sambung ke kanan.' },
-            { symbol: 'Da', name: 'Aksara Da', hint: 'Titik awal: atas kanan.', move: 'Gerak tangan: ikuti contoh sampai garis bertemu.' },
-            { symbol: 'Na', name: 'Aksara Na', hint: 'Titik awal: tengah.', move: 'Gerak tangan: buat lengkung kecil lalu panjangkan.' },
-            { symbol: 'Ca', name: 'Aksara Ca', hint: 'Titik awal: kiri atas.', move: 'Gerak tangan: bentuk pendek dan jaga jarak.' },
-            { symbol: 'Ja', name: 'Aksara Ja', hint: 'Titik awal: kanan atas.', move: 'Gerak tangan: turun pelan lalu beri ekor.' },
-            { symbol: 'Nya', name: 'Aksara Nya', hint: 'Titik awal: atas.', move: 'Gerak tangan: buat badan besar, tutup rapi.' },
-            { symbol: 'Ya', name: 'Aksara Ya', hint: 'Titik awal: kiri.', move: 'Gerak tangan: sambung halus ke kanan.' },
-            { symbol: 'La', name: 'Aksara La', hint: 'Titik awal: bawah.', move: 'Gerak tangan: naik lalu lengkung.' },
-            { symbol: 'Ra', name: 'Aksara Ra', hint: 'Titik awal: atas.', move: 'Gerak tangan: garis utama dulu, tambah tanda.' },
-            { symbol: 'Sa', name: 'Aksara Sa', hint: 'Titik awal: kiri atas.', move: 'Gerak tangan: ikuti lekuk dengan sabar.' },
-            { symbol: 'Wa', name: 'Aksara Wa', hint: 'Titik awal: tengah kiri.', move: 'Gerak tangan: buat putaran kecil.' },
-            { symbol: 'Ha', name: 'Aksara Ha', hint: 'Titik awal: atas kanan.', move: 'Gerak tangan: tutup bentuk sampai rapi.' }
+            { symbol: 'Ka', img: 'aksara-ka.jpeg', name: 'Aksara Ka', hint: 'Titik awal: pucuk kiri.', move: 'Gerak tangan: turun, lengkung, lalu tutup rapi.' },
+            { symbol: 'Ga', img: 'aksara-ga.jpeg', name: 'Aksara Ga', hint: 'Titik awal: bagian atas.', move: 'Gerak tangan: garis besar dulu, tambah ekor kecil.' },
+            { symbol: 'Nga', img: 'aksara-nga.jpeg', name: 'Aksara Nga', hint: 'Titik awal: tengah atas.', move: 'Gerak tangan: buat badan lebar, sambung pelan.' },
+            { symbol: 'Pa', img: 'aksara-pa.jpeg', name: 'Aksara Pa', hint: 'Titik awal: kiri bawah.', move: 'Gerak tangan: naik lalu putar sedikit.' },
+            { symbol: 'Ba', img: 'aksara-ba.jpeg', name: 'Aksara Ba', hint: 'Titik awal: kiri atas.', move: 'Gerak tangan: bentuk badan, tambah garis penanda.' },
+            { symbol: 'Ma', img: 'aksara-ma.jpeg', name: 'Aksara Ma', hint: 'Titik awal: atas.', move: 'Gerak tangan: tarik turun, lengkungkan ujung.' },
+            { symbol: 'Ta', img: 'aksara-ta.jpeg', name: 'Aksara Ta', hint: 'Titik awal: kiri.', move: 'Gerak tangan: garis pendek lalu sambung ke kanan.' },
+            { symbol: 'Da', img: 'aksara-da.jpeg', name: 'Aksara Da', hint: 'Titik awal: atas kanan.', move: 'Gerak tangan: ikuti contoh sampai garis bertemu.' },
+            { symbol: 'Na', img: 'aksara-na.jpeg', name: 'Aksara Na', hint: 'Titik awal: tengah.', move: 'Gerak tangan: buat lengkung kecil lalu panjangkan.' },
+            { symbol: 'Ca', img: 'aksara-ca.jpeg', name: 'Aksara Ca', hint: 'Titik awal: kiri atas.', move: 'Gerak tangan: bentuk pendek dan jaga jarak.' },
+            { symbol: 'Ja', img: 'aksara-ja.jpeg', name: 'Aksara Ja', hint: 'Titik awal: kanan atas.', move: 'Gerak tangan: turun pelan lalu beri ekor.' },
+            { symbol: 'Nya', img: 'aksara-nya.jpeg', name: 'Aksara Nya', hint: 'Titik awal: atas.', move: 'Gerak tangan: buat badan besar, tutup rapi.' },
+            { symbol: 'Ya', img: 'aksara-ya.jpeg', name: 'Aksara Ya', hint: 'Titik awal: kiri.', move: 'Gerak tangan: sambung halus ke kanan.' },
+            { symbol: 'A', img: 'aksara-a.jpeg', name: 'Aksara A', hint: 'Titik awal: atas kiri.', move: 'Gerak tangan: garis besar dulu.' },
+            { symbol: 'La', img: 'aksara-la.jpeg', name: 'Aksara La', hint: 'Titik awal: bawah.', move: 'Gerak tangan: naik lalu lengkung.' },
+            { symbol: 'Ra', img: 'aksara-ra.jpeg', name: 'Aksara Ra', hint: 'Titik awal: atas.', move: 'Gerak tangan: garis utama dulu, tambah tanda.' },
+            { symbol: 'Sa', img: 'aksara-sa.jpeg', name: 'Aksara Sa', hint: 'Titik awal: kiri atas.', move: 'Gerak tangan: ikuti lekuk dengan sabar.' },
+            { symbol: 'Wa', img: 'aksara-wa.jpeg', name: 'Aksara Wa', hint: 'Titik awal: tengah kiri.', move: 'Gerak tangan: buat putaran kecil.' },
+            { symbol: 'Ha', img: 'aksara-ha.jpeg', name: 'Aksara Ha', hint: 'Titik awal: atas kanan.', move: 'Gerak tangan: tutup bentuk sampai rapi.' },
+            { symbol: 'Gha', img: 'aksara-gha.jpeg', name: 'Aksara Gha', hint: 'Titik awal: atas kanan.', move: 'Gerak tangan: garis besar dulu.' }
         ];
 
+        // --- LOGIC APLIKASI ---
         let index = 0;
         let guideVisible = true;
         let penColor = '#ff5722';
@@ -95,20 +143,28 @@
 
         function render() {
             const item = letters[index];
-            document.getElementById('currentLetter').textContent = item.symbol;
+            
+            // --- INI PERUBAHAN UTAMANYA: GUNAKAN IMG ---
+            // Render gambar sebagai pengganti teks latin
+            document.getElementById('currentLetter').innerHTML = `<img src="${item.img}" alt="${item.symbol}">`;
+            document.getElementById('traceSymbol').innerHTML = `<img src="${item.img}" alt="${item.symbol}">`;
+            
             document.getElementById('currentName').textContent = item.name;
             document.getElementById('hintOne').textContent = item.hint;
             document.getElementById('hintTwo').textContent = item.move;
-            document.getElementById('traceSymbol').textContent = item.symbol;
             document.getElementById('writeCount').textContent = writeCount;
             document.getElementById('starText').textContent = starTotal;
             document.getElementById('letterStrip').innerHTML = letters.map((letter, i) =>
                 `<button class="letter-chip ${i === index ? 'active' : ''}" data-index="${i}">
-                    <span class="chip-symbol">${letter.symbol}</span><span>${letter.name}</span>
+                    <span class="chip-symbol">
+                        <img src="${letter.img}" alt="${letter.symbol}">
+                    </span>
+                    <span>${letter.name}</span>
                 </button>`
             ).join('');
         }
 
+        // --- LOGIC KANVAS DAN NAVIGASI (TETAP SAMA) ---
         function point(event) {
             const rect = canvas.getBoundingClientRect();
             const touch = event.touches ? event.touches[0] : event;
@@ -137,9 +193,7 @@
             event.preventDefault();
         }
 
-        function stop() {
-            drawing = false;
-        }
+        function stop() { drawing = false; }
 
         canvas.addEventListener('mousedown', start);
         canvas.addEventListener('mousemove', draw);
@@ -148,15 +202,28 @@
         canvas.addEventListener('touchmove', draw, { passive: false });
         window.addEventListener('touchend', stop);
         document.getElementById('clearBoard').addEventListener('click', () => ctx.clearRect(0, 0, canvas.width, canvas.height));
-        document.getElementById('prevLetter').addEventListener('click', () => { index = (index - 1 + letters.length) % letters.length; ctx.clearRect(0, 0, canvas.width, canvas.height); render(); });
-        document.getElementById('nextLetter').addEventListener('click', () => { index = (index + 1) % letters.length; ctx.clearRect(0, 0, canvas.width, canvas.height); render(); });
+        
+        document.getElementById('prevLetter').addEventListener('click', () => { 
+            index = (index - 1 + letters.length) % letters.length; 
+            ctx.clearRect(0, 0, canvas.width, canvas.height); 
+            render(); 
+        });
+        
+        document.getElementById('nextLetter').addEventListener('click', () => { 
+            index = (index + 1) % letters.length; 
+            ctx.clearRect(0, 0, canvas.width, canvas.height); 
+            render(); 
+        });
+        
         document.getElementById('toggleGuide').addEventListener('click', event => {
             guideVisible = !guideVisible;
-            document.getElementById('traceSymbol').style.display = guideVisible ? 'grid' : 'none';
+            document.getElementById('traceSymbol').style.display = guideVisible ? 'block' : 'none';
             event.target.textContent = guideVisible ? 'Tutup Contoh' : 'Tampil Contoh';
         });
+        
         document.getElementById('thinLine').addEventListener('click', () => { penSize = 7; });
         document.getElementById('thickLine').addEventListener('click', () => { penSize = 16; });
+        
         document.getElementById('colorTools').addEventListener('click', event => {
             const button = event.target.closest('button');
             if (!button) return;
@@ -164,6 +231,7 @@
             button.classList.add('active');
             penColor = button.dataset.color;
         });
+        
         document.querySelector('.star-check').addEventListener('click', event => {
             const button = event.target.closest('button');
             if (!button) return;
@@ -173,10 +241,16 @@
             localStorage.setItem('bintangNulis', starTotal);
             render();
         });
+        
         document.getElementById('letterStrip').addEventListener('click', event => {
             const button = event.target.closest('button');
-            if (button) { index = Number(button.dataset.index); ctx.clearRect(0, 0, canvas.width, canvas.height); render(); }
+            if (button) { 
+                index = Number(button.dataset.index); 
+                ctx.clearRect(0, 0, canvas.width, canvas.height); 
+                render(); 
+            }
         });
+        
         render();
     </script>
 </body>
